@@ -28,6 +28,12 @@ public class BeaconTagService {
         return this.beaconTagsRepository.findById(tagId);
     }
 
+    public BeaconTag findByTagName(String name) {
+        Optional<BeaconTag> tagExists = this.beaconTagsRepository.findByName(name);
+
+        return tagExists.orElseThrow(() -> new BeaconTagNotFoundException(name));
+    }
+
     public void delete(Integer tagId) {
         boolean tagExists = this.beaconTagsRepository.existsById(tagId);
 

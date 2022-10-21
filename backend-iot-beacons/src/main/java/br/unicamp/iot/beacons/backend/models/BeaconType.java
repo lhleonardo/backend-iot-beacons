@@ -5,7 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
-@Entity
+@Entity(name = "types")
 @Setter
 @Getter
 public class BeaconType {
