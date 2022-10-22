@@ -5,15 +5,18 @@ import br.unicamp.iot.beacons.backend.models.Beacon;
 import br.unicamp.iot.beacons.backend.models.BeaconDetails;
 import br.unicamp.iot.beacons.backend.models.BeaconTag;
 import br.unicamp.iot.beacons.backend.models.BeaconType;
+import br.unicamp.iot.beacons.backend.records.BeaconFilterRequest;
 import br.unicamp.iot.beacons.backend.records.CreateBeaconRequest;
 import br.unicamp.iot.beacons.backend.repositories.BeaconRepository;
+import br.unicamp.iot.beacons.backend.specifications.BeaconSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +28,8 @@ public class BeaconService {
 
 
     public Beacon create(CreateBeaconRequest request) {
-        if (this.findByUuid(UUID.fromString(request.uuid())).isPresent()) {
-            throw new DuplicateBeaconException(UUID.fromString(request.uuid()));
+        if (this.findByIdentifier(request.identifier()).isPresent()) {
+            throw new DuplicateBeaconException(request.identifier());
         }
 
         List<BeaconTag> tags = request.tags().stream()
@@ -41,7 +44,7 @@ public class BeaconService {
 
 
         Beacon beacon = new Beacon();
-        beacon.setUuid(UUID.fromString(request.uuid()));
+        beacon.setIdentifier(request.identifier());
         beacon.setName(request.name());
         beacon.setCreatedAt(LocalDateTime.now());
         beacon.setUpdatedAt(null);
@@ -52,7 +55,11 @@ public class BeaconService {
         return this.beaconRepository.save(beacon);
     }
 
-    public Optional<Beacon> findByUuid(UUID uuid) {
-        return this.beaconRepository.findByUuid(uuid);
+    public Optional<Beacon> findByIdentifier(String identifier) {
+        return this.beaconRepository.findByIdentifier(identifier);
+    }
+
+    public Page<Beacon> findAll(BeaconFilterRequest filter, Pageable page) {
+        return this.beaconRepository.findAll(BeaconSpecification.createFullSpecification(filter), page);
     }
 }

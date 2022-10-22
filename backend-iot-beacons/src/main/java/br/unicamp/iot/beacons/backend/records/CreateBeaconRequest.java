@@ -4,7 +4,7 @@ import java.util.List;
 
 public record CreateBeaconRequest(
         String name,
-        String uuid,
+        String identifier,
         String type,
         List<String> tags,
         LocationDTO location

@@ -5,7 +5,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity(name = "beacons")
 @Getter
@@ -17,7 +16,7 @@ public class Beacon {
     private Integer id;
 
     @Column
-    private UUID uuid;
+    private String identifier;
 
     @Column
     private String name;
