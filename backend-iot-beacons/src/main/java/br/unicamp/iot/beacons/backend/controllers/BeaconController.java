@@ -5,6 +5,7 @@ import br.unicamp.iot.beacons.backend.records.BeaconFilterRequest;
 import br.unicamp.iot.beacons.backend.records.CreateBeaconRequest;
 import br.unicamp.iot.beacons.backend.services.BeaconService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,7 +57,7 @@ public class BeaconController {
     @ApiResponse(responseCode = "200", description = "Beacons")
     public Page<Beacon> findAllBeacons(
             @RequestParam(required = false) @ParameterObject BeaconFilterRequest request,
-            @RequestParam(required = false) @ParameterObject @PageableDefault(size = 20, sort = {"id"}) Pageable page) {
+            @ParameterObject @PageableDefault(size = 20, sort = {"id"}) Pageable page) {
         return this.beaconService.findAll(request, page);
     }
 }

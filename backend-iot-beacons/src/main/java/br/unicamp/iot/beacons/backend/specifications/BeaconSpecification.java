@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,6 +17,10 @@ public class BeaconSpecification {
     public static Specification<Beacon> createFullSpecification(BeaconFilterRequest filter) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            if (Objects.isNull(filter)) {
+                return criteriaBuilder.and(Collections.<Predicate>emptyList().toArray(Predicate[]::new));
+            }
             if (Objects.nonNull(filter.getType())) {
                 predicates.add(criteriaBuilder.equal(root.join("type").get("name"), filter.getType()));
             }
