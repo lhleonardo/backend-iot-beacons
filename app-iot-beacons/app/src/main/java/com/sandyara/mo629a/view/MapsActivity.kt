@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -40,6 +41,9 @@ import com.sandyara.mo629a.R
 import com.sandyara.mo629a.databinding.ActivityMapsBinding
 import com.sandyara.mo629a.model.Suggestion
 import com.sandyara.mo629a.model.adapter.SuggestionAdapter
+import org.altbeacon.beacon.BeaconManager
+import org.altbeacon.beacon.MonitorNotifier
+import org.altbeacon.beacon.Region
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityMapsBinding
@@ -117,46 +121,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         super.onSaveInstanceState(outState)
     }
-    // [END maps_current_place_on_save_instance_state]
 
-    /**
-     * Sets up the options menu.
-     * @param menu The options menu.
-     * @return Boolean.
-     */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.current_place_menu, menu)
         return true
     }
 
-    /**
-     * Handles a click on the menu option to get a place.
-     * @param item The menu item to handle.
-     * @return Boolean.
-     */
-    // [START maps_current_place_on_options_item_selected]
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.option_get_place) {
             showCurrentPlace()
         }
         return true
     }
-    // [END maps_current_place_on_options_item_selected]
 
-    /**
-     * Manipulates the map when it's available.
-     * This callback is triggered when the map is ready to be used.
-     */
-    // [START maps_current_place_on_map_ready]
     override fun onMapReady(map: GoogleMap) {
         this.map = map
-
-        // [START_EXCLUDE]
-        // [START map_current_place_set_info_window_adapter]
-        // Use a custom info window adapter to handle multiple lines of text in the
-        // info window contents.
         this.map?.setInfoWindowAdapter(object : InfoWindowAdapter {
-            // Return null here, so that getInfoContents() is called next.
             override fun getInfoWindow(arg0: Marker): View? {
                 return null
             }
@@ -172,30 +152,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 return infoWindow
             }
         })
-        // [END map_current_place_set_info_window_adapter]
 
-        // Prompt the user for permission.
         getLocationPermission()
-        // [END_EXCLUDE]
-
-        // Turn on the My Location layer and the related control on the map.
         updateLocationUI()
-
-        // Get the current location of the device and set the position of the map.
         getDeviceLocation()
+        setupRanging()
     }
-    // [END maps_current_place_on_map_ready]
 
-    /**
-     * Gets the current location of the device, and positions the map's camera.
-     */
-    // [START maps_current_place_get_device_location]
+    private fun setupRanging() {
+        val beaconManager =  BeaconManager.getInstanceForApplication(this)
+        val region = Region("all-beacons-region", null, null, null)
+        // Set up a Live Data observer so this Activity can get monitoring callbacks
+        // observer will be called each time the monitored regionState changes (inside vs. outside region)
+        beaconManager.getRegionViewModel(region).regionState.observeForever(monitoringObserver)
+        beaconManager.startMonitoring(region)
+    }
+
     @SuppressLint("MissingPermission")
     private fun getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
         try {
             if (locationPermissionGranted) {
                 val locationResult = fusedLocationProviderClient.lastLocation
@@ -409,5 +383,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         private const val KEY_CAMERA_POSITION = "camera_position"
         private const val KEY_LOCATION = "location"
         private const val M_MAX_ENTRIES = 5
+
+        val monitoringObserver = Observer<Int> { state ->
+            if (state == MonitorNotifier.INSIDE) {
+                Log.d(TAG, "Beacons detected")
+            }
+            else {
+                Log.d(TAG, "No beacons detected")
+            }
+        }
     }
 }
